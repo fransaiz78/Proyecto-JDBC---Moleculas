@@ -29,31 +29,33 @@ public class FormulasMoleculares {
 		try {
 			inicializaciones();
 
+			// ejecScript.main(args);
+			// // Transacion insertarMolecula(nombre, simbolos[], nros[]):
+			// String[] simbolos = { "H", "O" };
+			// int[] nros = { 2, 1 };
+			// System.out.println("La transaccion:insertarMolecula(nombre,
+			// simbolos[], nros[]) es: "
+			// + insertarMolecula("AGUA", simbolos, nros) + " = true\n");
+
 			ejecScript.main(args);
-			// Transacion insertarMolecula(nombre, simbolos[], nros[]):
-			String[] simbolos = { "H", "O" };
-			int[] nros = { 2, 1 };
-			System.out.println("La transaccion:insertarMolecula(nombre, simbolos[], nros[]) es: "
-					+ insertarMolecula("AGUA", simbolos, nros) + " = true\n");
+			// Transacion borrarMolecula(nombreMolecula):
+			borrarMolecula("Agua");
 
-//			ejecScript.main(args);
-//			// Transacion borrarMolecula(nombreMolecula):
-//			System.out.println(
-//					"La transaccion: borrarMolecula(nombreMolecula) es: " + borrarMolecula("Agua") + " = true\n");
+			// ejecScript.main(args);
+			// // Transacion borrarMolecula(id)
+			// borrarMolecula(967);
 
-//			ejecScript.main(args);
-//			// Transacion borrarMolecula(id)
-//			System.out.println("La transaccion: borrarMolecula(id) es: " + borrarMolecula(962) + " = true\n");
+			// ejecScript.main(args);
+			// // Transacion actualizarMolecula (id, simbolo, nro)
+			// System.out.println("La transaccion: actualizarMolecula (id,
+			// simbolo, nro) es: "
+			// + actualizarMolecula(962, "H", 3) + " = true\n");
 
-//			ejecScript.main(args);
-//			// Transacion actualizarMolecula (id, simbolo, nro)
-//			System.out.println("La transaccion: actualizarMolecula (id, simbolo, nro) es: "
-//					+ actualizarMolecula(962, "H", 3) + " = true\n");
-
-//			ejecScript.main(args);
-//			// TransacionactualizarMolecula (nombre, simbolo, nro):
-//			System.out.println("La transaccion: actualizarMolecula (nombre, simbolo, nro) es: "
-//					+ actualizarMolecula("Agua", "H", 3) + " = true\n");
+			// ejecScript.main(args);
+			// // TransacionactualizarMolecula (nombre, simbolo, nro):
+			// System.out.println("La transaccion: actualizarMolecula (nombre,
+			// simbolo, nro) es: "
+			// + actualizarMolecula("Agua", "H", 3) + " = true\n");
 
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -71,7 +73,7 @@ public class FormulasMoleculares {
 		PreparedStatement pst = null;
 		PreparedStatement pst2 = null;
 		PreparedStatement pst3 = null;
-		
+
 		ResultSet rs = null;
 
 		String form = "";
@@ -83,7 +85,7 @@ public class FormulasMoleculares {
 
 			// Calcular formula y sacar pesos.
 			pst = con.prepareStatement("SELECT pesoAtomico FROM Elementos WHERE simbolo=?");
-			
+
 			for (int i = 0; i < simbolos.length; i++) {
 				form = form.concat(simbolos[i]);
 				if (nros[i] > 1) {
@@ -112,7 +114,7 @@ public class FormulasMoleculares {
 					"INSERT INTO Composicion(simbolo, idMolecula, nroAtomos) values(?, seq_molId.currval, ?)");
 			// Relleno Composicion
 			for (int i = 0; i < simbolos.length; i++) {
-				
+
 				pst3.setString(1, simbolos[i]);
 				pst3.setInt(2, nros[i]);
 				insertados += pst3.executeUpdate();
@@ -159,17 +161,24 @@ public class FormulasMoleculares {
 			pstId.setString(1, nombreMol);
 
 			rsId = pstId.executeQuery();
-			rsId.next();
-			idMol = rsId.getInt(1);
+			// Si el nombre d la molecula existe.
+			if (rsId.next()) {
+				idMol = rsId.getInt(1);
+				borrarMolecula(idMol);
 
-			retorno = borrarMolecula(idMol);
-
-			if (retorno) {
 				con.commit();
+			} else {
+				throw (new ChemistryException(ChemistryError.NO_EXISTE_MOLECULA));
 			}
 
 		} catch (SQLException e) {
 			// Falta algo
+			logger.error("La transacion hay que deshacerla.");
+			pool.undo(con);
+			logger.error(e.getLocalizedMessage());
+
+		} catch (ChemistryException e) {
+			// TODO Auto-generated catch block
 			logger.error("La transacion hay que deshacerla.");
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
@@ -225,9 +234,7 @@ public class FormulasMoleculares {
 	}
 
 	// Nº 4
-	public static boolean borrarMolecula(int id) {
-		boolean retorno = false;
-
+	public static void borrarMolecula(int id) throws ChemistryException {
 		Connection con = null;
 
 		PreparedStatement pstComp = null;
@@ -250,17 +257,22 @@ public class FormulasMoleculares {
 			if (nroMol == 1 && nroComp == 2) {
 				logger.info("La transacion ha ido bien.");
 				con.commit();
-				retorno = true;
+
 			} else {
-				retorno = false;
+				throw (new ChemistryException(ChemistryError.NO_EXISTE_MOLECULA));
 			}
 
-		} catch (SQLException e) {
+		} catch (ChemistryException e) {
 			// Falta algo
 			logger.error("La transacion hay que deshacerla.");
-			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
 
+			pool.undo(con);
+
+		} catch (SQLException e) {
+			logger.error("La transacion hay que deshacerla.");
+			logger.error(e.getLocalizedMessage());
+			pool.undo(con);
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos");
@@ -268,8 +280,6 @@ public class FormulasMoleculares {
 			pool.close(pstComp);
 			pool.close(pstMol);
 		}
-
-		return retorno;
 	}
 
 	// Nº 5
@@ -282,8 +292,10 @@ public class FormulasMoleculares {
 		PreparedStatement pstActuComp = null;
 		PreparedStatement pstActuMol = null;
 		PreparedStatement pstMol = null;
+		PreparedStatement pstPrue = null;
 
 		ResultSet rsJoin = null;
+		ResultSet rsPrue = null;
 
 		int pesoAtomico = 0;
 		int pesoMolecularTotal = 0;
@@ -295,12 +307,22 @@ public class FormulasMoleculares {
 		try {
 			con = pool.getConnection();
 
+			pstPrue = con.prepareStatement("SELECT formula FROM Moleculas WHERE id=?");
+			pstPrue.setInt(1, id);
+			rsPrue = pstPrue.executeQuery();
+			rsPrue.next();
+			String formulaOriginal = rsPrue.getString("formula");
+			
 			// Actualizamos el nroAtomos de la tabla Composicion
 			pstActuComp = con.prepareStatement("UPDATE Composicion set nroAtomos=? WHERE idMolecula=? and simbolo=?");
 			pstActuComp.setInt(1, nro);
 			pstActuComp.setInt(2, id);
 			pstActuComp.setString(3, simbolo);
-			pstActuComp.executeUpdate();
+			int filActu = pstActuComp.executeUpdate();
+			
+//			if(filActu == 0){
+//				throw(new ChemistryException(ChemistryError.MOLECULA_YA_EXISTENTE));
+//			}
 
 			// Hacemos un join entre Elementos y Composicion para tener en la
 			// misma tabla todos los campos necesarios para las formulas.
@@ -326,6 +348,10 @@ public class FormulasMoleculares {
 				}
 			}
 
+			if(formula==formulaOriginal){
+				throw(new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
+			}
+			
 			// Actualizar Cadena
 			pstActuMol = con.prepareStatement("UPDATE Moleculas set Formula=?, pesoMolecular=? WHERE id=?");
 			pstActuMol.setString(1, formula);
@@ -343,13 +369,18 @@ public class FormulasMoleculares {
 
 		} catch (SQLException e) {
 			// Falta algo
-			logger.error("La transacion hay que deshacerla.");
+			logger.error("Deshaciendo transaccion...");
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
 
+		} catch (ChemistryException e) {
+			// TODO Auto-generated catch block
+			logger.error("Deshaciendo transaccion...");
+			pool.undo(con);
+			logger.error(e.getLocalizedMessage());
 		} finally {
 			// Rellenar por el alumno
-			logger.debug("Cerrando recursos");
+			logger.debug("Cerrando recursos...");
 			pool.close(con);
 			pool.close(pstMol);
 			pool.close(pstActuComp);
