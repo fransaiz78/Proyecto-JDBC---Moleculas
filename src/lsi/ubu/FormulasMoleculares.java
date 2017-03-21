@@ -29,17 +29,15 @@ public class FormulasMoleculares {
 		try {
 			inicializaciones();
 
-			// ejecScript.main(args);
-			// // Transacion insertarMolecula(nombre, simbolos[], nros[]):
-			// String[] simbolos = { "H", "O" };
-			// int[] nros = { 2, 1 };
-			// System.out.println("La transaccion:insertarMolecula(nombre,
-			// simbolos[], nros[]) es: "
-			// + insertarMolecula("AGUA", simbolos, nros) + " = true\n");
-
 			ejecScript.main(args);
-			// Transacion borrarMolecula(nombreMolecula):
-			borrarMolecula("Agua");
+			// Transacion insertarMolecula(nombre, simbolos[], nros[]):
+			String[] simbolos = { "H", "O" };
+			int[] nros = { 2, 1 };
+			insertarMolecula("Agua", simbolos, nros);
+
+			// ejecScript.main(args);
+			// // Transacion borrarMolecula(nombreMolecula):
+			// borrarMolecula("Agua");
 
 			// ejecScript.main(args);
 			// // Transacion borrarMolecula(id)
@@ -47,15 +45,11 @@ public class FormulasMoleculares {
 
 			// ejecScript.main(args);
 			// // Transacion actualizarMolecula (id, simbolo, nro)
-			// System.out.println("La transaccion: actualizarMolecula (id,
-			// simbolo, nro) es: "
-			// + actualizarMolecula(962, "H", 3) + " = true\n");
+			// actualizarMolecula(962, "V", 2);
 
 			// ejecScript.main(args);
 			// // TransacionactualizarMolecula (nombre, simbolo, nro):
-			// System.out.println("La transaccion: actualizarMolecula (nombre,
-			// simbolo, nro) es: "
-			// + actualizarMolecula("Agua", "H", 3) + " = true\n");
+			// actualizarMolecula("Agua", "V", 2);
 
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
@@ -65,16 +59,20 @@ public class FormulasMoleculares {
 	}
 
 	// Nº 1
-	public static boolean insertarMolecula(String nombre, String[] simbolos, int[] nros) {
+	public static void insertarMolecula(String nombre, String[] simbolos, int[] nros) {
 
 		Connection con = null;
-		boolean retorno = false;
 
 		PreparedStatement pst = null;
 		PreparedStatement pst2 = null;
 		PreparedStatement pst3 = null;
+		PreparedStatement pstExc = null;
+		PreparedStatement pstExc2 = null;
 
 		ResultSet rs = null;
+		ResultSet rsExc = null;
+		ResultSet rsExc2 = null;
+		
 
 		String form = "";
 		int pesoTotal = 0;
@@ -83,8 +81,23 @@ public class FormulasMoleculares {
 		try {
 			con = pool.getConnection();
 
+			//Comprobamos si ambos arrays son del mismo tamaño.
+			if (simbolos.length != nros.length) {
+				throw (new ChemistryException(ChemistryError.TAMAÑOS_INADECUADOS));
+			}
+
+			// Comprobamos si el nombre de la molecula a insertar ya existe.
+			pstExc = con.prepareStatement("SELECT * FROM Moleculas WHERE nombre=?");
+			pstExc.setString(1, nombre);
+			rsExc = pstExc.executeQuery();
+
+			if (rsExc.next()) {
+				throw (new ChemistryException(ChemistryError.NOMBRE_DE_MOLECULA_YA_EXISTENTE));
+			}
+
 			// Calcular formula y sacar pesos.
 			pst = con.prepareStatement("SELECT pesoAtomico FROM Elementos WHERE simbolo=?");
+			
 
 			for (int i = 0; i < simbolos.length; i++) {
 				form = form.concat(simbolos[i]);
@@ -92,15 +105,32 @@ public class FormulasMoleculares {
 					form = form.concat("" + nros[i]);
 				}
 
+				
 				// Sacamos el peso de ese simbolo y nos creamos un array
 				// auxiliar de los pesos.
 				pst.setString(1, simbolos[i]);
 				rs = pst.executeQuery();
-				rs.next();
-				// int peso = rsPeso.getInt(1);
-				pesoTotal += rs.getInt(1) * nros[i];
+				
+				if(rs.next()){
+					pesoTotal += rs.getInt(1) * nros[i];
+				}
+				else{
+					pool.close(con);
+					pool.close(pst);
+					pool.close(pst2);
+					pool.close(rs);
+					throw(new ChemistryException(ChemistryError.NO_EXISTE_ATOMO));
+				}
+
 			}
 
+			//Comprobar si la formula ya existe.
+			pstExc2 = con.prepareStatement("Select * FROM Moleculas Where formula=?");
+			pstExc2.setString(1, form);
+			rsExc2 = pstExc2.executeQuery();
+			if(rsExc2.next()){
+				throw(new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
+			}
 			// Insertar en molecula II
 			// Insertar molecula en Moleculas:
 			pst2 = con.prepareStatement(
@@ -123,13 +153,17 @@ public class FormulasMoleculares {
 			if (insertados == 3) {
 				logger.info("La transacion ha ido bien.");
 				con.commit();
-				retorno = true;
 			} else {
-				retorno = false;
 			}
 
 		} catch (SQLException e) {
 			// Falta algo
+			logger.error("La transacion hay que deshacerla.");
+			pool.undo(con);
+			logger.error(e.getLocalizedMessage());
+			e.printStackTrace();
+
+		} catch (ChemistryException e) {
 			logger.error("La transacion hay que deshacerla.");
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
@@ -143,7 +177,6 @@ public class FormulasMoleculares {
 			pool.close(rs);
 		}
 
-		return retorno;
 	}
 
 	// Nº 2
@@ -176,6 +209,7 @@ public class FormulasMoleculares {
 			logger.error("La transacion hay que deshacerla.");
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
+			e.printStackTrace();
 
 		} catch (ChemistryException e) {
 			// TODO Auto-generated catch block
@@ -195,9 +229,8 @@ public class FormulasMoleculares {
 	}
 
 	// Nº 3
-	public static boolean actualizarMolecula(String nombreMol, String simbolo, int nro) {
+	public static void actualizarMolecula(String nombreMol, String simbolo, int nro) {
 		Connection con = null;
-		boolean retorno = false;
 
 		PreparedStatement pstId = null;
 		ResultSet rsId = null;
@@ -210,17 +243,23 @@ public class FormulasMoleculares {
 			pstId = con.prepareStatement("SELECT id FROM MOLECULAS WHERE nombre=?");
 			pstId.setString(1, nombreMol);
 			rsId = pstId.executeQuery();
-			rsId.next();
-			idMol = rsId.getInt(1);
-
-			actualizarMolecula(idMol, simbolo, nro);
+			if (rsId.next()) {
+				idMol = rsId.getInt(1);
+				actualizarMolecula(idMol, simbolo, nro);
+			} else {
+				throw (new ChemistryException(ChemistryError.NO_EXISTE_MOLECULA));
+			}
 
 		} catch (SQLException e) {
 			// Falta algo
 			logger.error("La transacion hay que deshacerla.");
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
-
+			e.printStackTrace();
+		} catch (ChemistryException e) {
+			logger.error("La transacion hay que deshacerla.");
+			pool.undo(con);
+			logger.error(e.getLocalizedMessage());
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos");
@@ -229,8 +268,6 @@ public class FormulasMoleculares {
 			pool.close(rsId);
 
 		}
-
-		return retorno;
 	}
 
 	// Nº 4
@@ -266,13 +303,14 @@ public class FormulasMoleculares {
 			// Falta algo
 			logger.error("La transacion hay que deshacerla.");
 			logger.error(e.getLocalizedMessage());
-
 			pool.undo(con);
 
 		} catch (SQLException e) {
 			logger.error("La transacion hay que deshacerla.");
 			logger.error(e.getLocalizedMessage());
 			pool.undo(con);
+			e.printStackTrace();
+
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos");
@@ -307,17 +345,20 @@ public class FormulasMoleculares {
 		try {
 			con = pool.getConnection();
 
-			pstPrue8 = con.prepareStatement("SELECT * FROM Composicion WHERE id=?");
-			pstPrue8.setInt(1, id);
+			pstPrue8 = con
+					.prepareStatement("SELECT * FROM Composicion WHERE simbolo=? and idMolecula=? and nroAtomos=?");
+			pstPrue8.setString(1, simbolo);
+			pstPrue8.setInt(2, id);
+			pstPrue8.setInt(3, nro);
+
 			rsPrue8 = pstPrue8.executeQuery();
-			rsPrue8.next();
 
 			// Comprobacion de que los parametros pasados existen ya enn la
 			// tabla.
-			if (rsPrue8.getString(1) == simbolo && rsPrue8.getInt(2) == id && rsPrue8.getInt(3) == nro) {
+
+			if (rsPrue8.next()) {
 				throw (new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
 			} else {
-
 				pstPrue = con.prepareStatement("SELECT formula FROM Moleculas WHERE id=?");
 				pstPrue.setInt(1, id);
 				rsPrue = pstPrue.executeQuery();
@@ -340,9 +381,10 @@ public class FormulasMoleculares {
 				// la
 				// misma tabla todos los campos necesarios para las formulas.
 
-				pstMol = con.prepareStatement("SELECT simbolo, nombre, pesoAtomico, nroAtomos, idMolecula"
-						+ " FROM Elementos inner join Composicion"
-						+ " ON Elementos.simbolo = composicion.simbolo and composicion.idmolecula=?");
+				pstMol = con.prepareStatement(
+						"SELECT elementos.simbolo, elementos.nombre, elementos.pesoatomico, composicion.nroatomos "
+								+ "FROM Elementos inner join Composicion "
+								+ "ON Elementos.simbolo = composicion.simbolo and composicion.idMolecula=?");
 				pstMol.setInt(1, id);
 				rsJoin = pstMol.executeQuery();
 
@@ -382,6 +424,7 @@ public class FormulasMoleculares {
 			logger.error("Deshaciendo transaccion...");
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
+			e.printStackTrace();
 
 		} catch (ChemistryException e) {
 			// TODO Auto-generated catch block
