@@ -213,7 +213,7 @@ public class FormulasMoleculares {
 			rsId.next();
 			idMol = rsId.getInt(1);
 
-			retorno = actualizarMolecula(idMol, simbolo, nro);
+			actualizarMolecula(idMol, simbolo, nro);
 
 		} catch (SQLException e) {
 			// Falta algo
@@ -283,9 +283,7 @@ public class FormulasMoleculares {
 	}
 
 	// Nº 5
-	public static boolean actualizarMolecula(int id, String simbolo, int nro) {
-
-		boolean retorno = false;
+	public static void actualizarMolecula(int id, String simbolo, int nro) {
 
 		Connection con = null;
 
@@ -293,9 +291,11 @@ public class FormulasMoleculares {
 		PreparedStatement pstActuMol = null;
 		PreparedStatement pstMol = null;
 		PreparedStatement pstPrue = null;
+		PreparedStatement pstPrue8 = null;
 
 		ResultSet rsJoin = null;
 		ResultSet rsPrue = null;
+		ResultSet rsPrue8 = null;
 
 		int pesoAtomico = 0;
 		int pesoMolecularTotal = 0;
@@ -307,64 +307,74 @@ public class FormulasMoleculares {
 		try {
 			con = pool.getConnection();
 
-			pstPrue = con.prepareStatement("SELECT formula FROM Moleculas WHERE id=?");
-			pstPrue.setInt(1, id);
-			rsPrue = pstPrue.executeQuery();
-			rsPrue.next();
-			String formulaOriginal = rsPrue.getString("formula");
-			
-			// Actualizamos el nroAtomos de la tabla Composicion
-			pstActuComp = con.prepareStatement("UPDATE Composicion set nroAtomos=? WHERE idMolecula=? and simbolo=?");
-			pstActuComp.setInt(1, nro);
-			pstActuComp.setInt(2, id);
-			pstActuComp.setString(3, simbolo);
-			int filActu = pstActuComp.executeUpdate();
-			
-//			if(filActu == 0){
-//				throw(new ChemistryException(ChemistryError.MOLECULA_YA_EXISTENTE));
-//			}
+			pstPrue8 = con.prepareStatement("SELECT * FROM Composicion WHERE id=?");
+			pstPrue8.setInt(1, id);
+			rsPrue8 = pstPrue8.executeQuery();
+			rsPrue8.next();
 
-			// Hacemos un join entre Elementos y Composicion para tener en la
-			// misma tabla todos los campos necesarios para las formulas.
-
-			pstMol = con.prepareStatement("SELECT simbolo, nombre, pesoAtomico, nroAtomos, idMolecula"
-					+ " FROM Elementos inner join Composicion"
-					+ " ON Elementos.simbolo = composicion.simbolo and composicion.idmolecula=?");
-			pstMol.setInt(1, id);
-			rsJoin = pstMol.executeQuery();
-
-			while (rsJoin.next()) {
-				// Obtenemos el peso atomico y el numero de atomos del simbolo.
-				simb = rsJoin.getString(1);
-				pesoAtomico = rsJoin.getInt(3);
-				numAtomos = rsJoin.getInt(4);
-				numAtomosSt = rsJoin.getString(4);
-				// Calculo el peso molecular.
-				pesoMolecularTotal += (pesoAtomico * numAtomos);
-				// Concatenamos la formula.
-				formula = formula.concat(simb);
-				if (numAtomos > 1) {
-					formula = formula.concat(numAtomosSt);
-				}
-			}
-
-			if(formula==formulaOriginal){
-				throw(new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
-			}
-			
-			// Actualizar Cadena
-			pstActuMol = con.prepareStatement("UPDATE Moleculas set Formula=?, pesoMolecular=? WHERE id=?");
-			pstActuMol.setString(1, formula);
-			pstActuMol.setInt(2, pesoMolecularTotal);
-			pstActuMol.setInt(3, id);
-			pstActuMol.executeUpdate();
-
-			if ((pesoMolecularTotal == 21)) {
-				logger.info("La transacion ha ido bien.");
-				con.commit();
-				retorno = true;
+			// Comprobacion de que los parametros pasados existen ya enn la
+			// tabla.
+			if (rsPrue8.getString(1) == simbolo && rsPrue8.getInt(2) == id && rsPrue8.getInt(3) == nro) {
+				throw (new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
 			} else {
-				retorno = false;
+
+				pstPrue = con.prepareStatement("SELECT formula FROM Moleculas WHERE id=?");
+				pstPrue.setInt(1, id);
+				rsPrue = pstPrue.executeQuery();
+				rsPrue.next();
+				String formulaOriginal = rsPrue.getString("formula");
+
+				// Actualizamos el nroAtomos de la tabla Composicion
+				pstActuComp = con
+						.prepareStatement("UPDATE Composicion set nroAtomos=? WHERE idMolecula=? and simbolo=?");
+				pstActuComp.setInt(1, nro);
+				pstActuComp.setInt(2, id);
+				pstActuComp.setString(3, simbolo);
+				int filActu = pstActuComp.executeUpdate();
+
+				if (filActu == 0) {
+					throw (new ChemistryException(ChemistryError.MOLECULA_NO_CONTIENE_SIMBOLO));
+				}
+
+				// Hacemos un join entre Elementos y Composicion para tener en
+				// la
+				// misma tabla todos los campos necesarios para las formulas.
+
+				pstMol = con.prepareStatement("SELECT simbolo, nombre, pesoAtomico, nroAtomos, idMolecula"
+						+ " FROM Elementos inner join Composicion"
+						+ " ON Elementos.simbolo = composicion.simbolo and composicion.idmolecula=?");
+				pstMol.setInt(1, id);
+				rsJoin = pstMol.executeQuery();
+
+				while (rsJoin.next()) {
+					// Obtenemos el peso atomico y el numero de atomos del
+					// simbolo.
+					simb = rsJoin.getString(1);
+					pesoAtomico = rsJoin.getInt(3);
+					numAtomos = rsJoin.getInt(4);
+					numAtomosSt = rsJoin.getString(4);
+					// Calculo el peso molecular.
+					pesoMolecularTotal += (pesoAtomico * numAtomos);
+					// Concatenamos la formula.
+					formula = formula.concat(simb);
+					if (numAtomos > 1) {
+						formula = formula.concat(numAtomosSt);
+					}
+				}
+
+				if (formula == formulaOriginal) {
+					throw (new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
+				}
+
+				// Actualizar Cadena
+				pstActuMol = con.prepareStatement("UPDATE Moleculas set Formula=?, pesoMolecular=? WHERE id=?");
+				pstActuMol.setString(1, formula);
+				pstActuMol.setInt(2, pesoMolecularTotal);
+				pstActuMol.setInt(3, id);
+				pstActuMol.executeUpdate();
+
+				con.commit();
+
 			}
 
 		} catch (SQLException e) {
@@ -385,10 +395,12 @@ public class FormulasMoleculares {
 			pool.close(pstMol);
 			pool.close(pstActuComp);
 			pool.close(pstActuMol);
+			pool.close(pstPrue);
+			pool.close(pstPrue8);
 			pool.close(rsJoin);
+			pool.close(rsPrue);
+			pool.close(rsPrue8);
 		}
-
-		return retorno;
 	}
 
 	public static void inicializaciones() throws NamingException, SQLException, IOException {
