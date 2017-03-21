@@ -18,48 +18,272 @@ public class FormulasMoleculares {
 	private static PoolDeConexiones pool;
 	private static Logger logger;
 
-	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
-
-		Connection con = null;
-
-		// Para tener el sql original cargado para cada transacion
-		ExecuteScript ejecScript = new ExecuteScript();
 
 		try {
 			inicializaciones();
+		} catch (NamingException | SQLException | IOException e1) {
+			e1.printStackTrace();
+		}
 
-			ejecScript.main(args);
-			// Transacion insertarMolecula(nombre, simbolos[], nros[]):
+		System.out.println("---------------------------------------------------------------");
+		System.out.println("        - Bateria de pruebas para el caso de INSERTAR -        ");
+		System.out.println("---------------------------------------------------------------\n");
+
+		try {
 			String[] simbolos = { "H", "O" };
 			int[] nros = { 2, 1 };
 			insertarMolecula("Agua", simbolos, nros);
+			System.out.println("Insertar molecula se ha realizado con éxito.");
 
-			// ejecScript.main(args);
-			// // Transacion borrarMolecula(nombreMolecula):
-			// borrarMolecula("Agua");
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.FORMULA_YA_EXISTENTE) {
+				System.out.println("Insertar molecula con formula existente. OK. ");
+			} else {
+				System.out.println("Insertar molecula con formula existente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
 
-			// ejecScript.main(args);
-			// // Transacion borrarMolecula(id)
-			// borrarMolecula(967);
+		try {
+			String[] simbolos = { "C", "H", "V" };
+			int[] nros = { 1, 4 };
+			insertarMolecula("Agua", simbolos, nros);
+			System.out.println("Borrar molecula por un id se ha realizado con éxito.");
 
-			// ejecScript.main(args);
-			// // Transacion actualizarMolecula (id, simbolo, nro)
-			// actualizarMolecula(962, "V", 2);
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.TAMAÑOS_INADECUADOS) {
+				System.out.println("Insertar molecula con arrays de diferente tam. OK. ");
+			} else {
+				System.out.println("Insertar molecula con arrays de diferente tam. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
 
-			// ejecScript.main(args);
-			// // TransacionactualizarMolecula (nombre, simbolo, nro):
-			// actualizarMolecula("Agua", "V", 2);
+		try {
+			String[] simbolos = { "C", "H" };
+			int[] nros = { 1, 4 };
+			insertarMolecula("Metano", simbolos, nros);
+			System.out.println("Insertar molecula se ha realizado con éxito.");
 
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			logger.error(e.getLocalizedMessage());
-			pool.undo(con);
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_ATOMO) {
+				System.out.println("Insertar molecula con atomo inexistente. OK. ");
+			} else {
+				System.out.println("Insertar molecula con atomo inexistente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			String[] simbolos = { "H", "O" };
+			int[] nros = { 2, 1 };
+			insertarMolecula("Agua2", simbolos, nros);
+			System.out.println("Insertar molecula se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.FORMULA_YA_EXISTENTE) {
+				System.out.println("Insertar molecula con formula existente. OK. ");
+			} else {
+				System.out.println("Insertar molecula con formula existente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			String[] simbolos = { "H", "O" };
+			int[] nros = { 4, 5 };
+			insertarMolecula("Agua", simbolos, nros);
+			System.out.println("Insertar molecula se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NOMBRE_DE_MOLECULA_YA_EXISTENTE) {
+				System.out.println("Insertar molecula con nombre existente. OK. ");
+			} else {
+				System.out.println("Insertar molecula con nombre existente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		// Acabamos la bateria de pruebas para el caso Insertar con la molecula:
+		// H2O.
+
+		System.out.println("\n-----------------------------------------------------------------");
+		System.out.println(" - Bateria de pruebas para el caso de ACTUALIZAR - ");
+		System.out.println("-----------------------------------------------------------------\n");
+
+		try {
+			actualizarMolecula(1, "V", 4);
+			System.out.println("ActualizarMolecula mediante Id con simbolo inexistente se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.MOLECULA_NO_CONTIENE_SIMBOLO) {
+				System.out.println("ActualizarMolecula mediante Id con simbolo inexistente. OK. ");
+			} else {
+				System.out.println("ActualizarMolecula mediante Id con simbolo inexistente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		// El valor actual del H es 2
+		try {
+			actualizarMolecula(1, "H", 2);
+			System.out.println("ActualizarMolecula mediante Id con formula existente se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.FORMULA_YA_EXISTENTE) {
+				System.out.println("ActualizarMolecula mediante Id con formula existente. OK. ");
+			} else {
+				System.out.println("ActualizarMolecula mediante Id con formula existente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			actualizarMolecula(1, "H", 4);
+			System.out.println("ActualizarMolecula mediante Id se ha realizado con éxito.");
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_MOLECULA) {
+				System.out.println("ActualizarMolecula mediante Id. OK. ");
+			} else {
+				System.out.println("ActualizarMolecula mediante Id. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			actualizarMolecula("Agua", "V", 4);
+			System.out.println("ActualizarMolecula mediante Nombre con simbolo inexistente se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.MOLECULA_NO_CONTIENE_SIMBOLO) {
+				System.out.println("ActualizarMolecula mediante Nombre con simbolo inexistente. OK. ");
+			} else {
+				System.out.println("ActualizarMolecula mediante Nombre con simbolo inexistente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		// En la ultima actualizacion, el H se ha quedado con 4
+		try {
+			actualizarMolecula("Agua", "H", 4);
+			System.out.println("ActualizarMolecula mediante Nombre con formula existente se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.FORMULA_YA_EXISTENTE) {
+				System.out.println("ActualizarMolecula mediante Nombre con formula existente. OK. ");
+			} else {
+				System.out.println("ActualizarMolecula mediante Nombre con formula existente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			actualizarMolecula("Agua", "H", 2);
+			System.out.println("ActualizarMolecula mediante Nombre se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_MOLECULA) {
+				System.out.println("ActualizarMolecula mediante Nombre. OK. ");
+			} else {
+				System.out.println("ActualizarMolecula mediante Nombre. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		// Acabamos la bateria de pruebas para el caso Actualizar con la
+		// molecula: H2O.
+
+		System.out.println("\n-----------------------------------------------------------");
+		System.out.println("        - Bateria de pruebas para el caso de BORRAR -        ");
+		System.out.println("-------------------------------------------------------------\n");
+
+		try {
+			borrarMolecula(1);
+			System.out.println("Borrar molecula mediante Id se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_MOLECULA) {
+				System.out.println("Borrar molecula mediante Id si no existe. OK. ");
+			} else {
+				System.out.println("Borrar molecula mediante Id si no existe. MAL.		 ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			borrarMolecula(1);
+			System.out.println("Borrar molecula mediante Id se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_MOLECULA) {
+				System.out.println("Borrar molecula mediante Id si no existe. OK. ");
+			} else {
+				System.out.println("Borrar molecula mediante Id si no existe. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			String[] simbolos = { "H", "O" };
+			int[] nros = { 2, 1 };
+			insertarMolecula("Agua", simbolos, nros);
+			System.out.println("Insertar molecula se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.FORMULA_YA_EXISTENTE) {
+				System.out.println("Insertar molecula con formula existente. OK. ");
+			} else {
+				System.out.println("Insertar molecula con formula existente. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			borrarMolecula("Agua");
+			System.out.println("Borrar molecula mediante Nombre se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_MOLECULA) {
+				System.out.println("Borrar molecula mediante Nombre si no existe. OK. ");
+			} else {
+				System.out.println("Borrar molecula mediante Nombre si no existe. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
+		}
+
+		try {
+			borrarMolecula("Agua");
+			System.out.println("Borrar molecula mediante Nombre se ha realizado con éxito.");
+
+		} catch (ChemistryException e) {
+			if (e.getError() == ChemistryError.NO_EXISTE_MOLECULA) {
+				System.out.println("Borrar molecula mediante Nombre si no existe. OK. ");
+			} else {
+				System.out.println("Borrar molecula mediante Nombre si no existe. MAL. ");
+			}
+			// System.err.println(e.getMessage());
+			// logger.error(e.getLocalizedMessage());
 		}
 	}
 
 	// Nº 1
-	public static void insertarMolecula(String nombre, String[] simbolos, int[] nros) {
+	public static void insertarMolecula(String nombre, String[] simbolos, int[] nros) throws ChemistryException {
 
 		Connection con = null;
 
@@ -72,7 +296,6 @@ public class FormulasMoleculares {
 		ResultSet rs = null;
 		ResultSet rsExc = null;
 		ResultSet rsExc2 = null;
-		
 
 		String form = "";
 		int pesoTotal = 0;
@@ -81,7 +304,7 @@ public class FormulasMoleculares {
 		try {
 			con = pool.getConnection();
 
-			//Comprobamos si ambos arrays son del mismo tamaño.
+			// Comprobamos si ambos arrays son del mismo tamaño.
 			if (simbolos.length != nros.length) {
 				throw (new ChemistryException(ChemistryError.TAMAÑOS_INADECUADOS));
 			}
@@ -97,7 +320,6 @@ public class FormulasMoleculares {
 
 			// Calcular formula y sacar pesos.
 			pst = con.prepareStatement("SELECT pesoAtomico FROM Elementos WHERE simbolo=?");
-			
 
 			for (int i = 0; i < simbolos.length; i++) {
 				form = form.concat(simbolos[i]);
@@ -105,36 +327,34 @@ public class FormulasMoleculares {
 					form = form.concat("" + nros[i]);
 				}
 
-				
 				// Sacamos el peso de ese simbolo y nos creamos un array
 				// auxiliar de los pesos.
 				pst.setString(1, simbolos[i]);
 				rs = pst.executeQuery();
-				
-				if(rs.next()){
+
+				if (rs.next()) {
 					pesoTotal += rs.getInt(1) * nros[i];
-				}
-				else{
+				} else {
 					pool.close(con);
 					pool.close(pst);
 					pool.close(pst2);
 					pool.close(rs);
-					throw(new ChemistryException(ChemistryError.NO_EXISTE_ATOMO));
+					throw (new ChemistryException(ChemistryError.NO_EXISTE_ATOMO));
 				}
 
 			}
 
-			//Comprobar si la formula ya existe.
+			// Comprobar si la formula ya existe.
 			pstExc2 = con.prepareStatement("Select * FROM Moleculas Where formula=?");
 			pstExc2.setString(1, form);
 			rsExc2 = pstExc2.executeQuery();
-			if(rsExc2.next()){
-				throw(new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
+			if (rsExc2.next()) {
+				throw (new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
 			}
 			// Insertar en molecula II
 			// Insertar molecula en Moleculas:
 			pst2 = con.prepareStatement(
-					"Insert into Moleculas(id, nombre, pesoMolecular, formula) values(seq_molId.nextval, ?, ?, ?)");
+					"INSERT INTO Moleculas(id, nombre, pesoMolecular, formula) values(seq_molId.nextval, ?, ?, ?)");
 			pst2.setString(1, nombre);
 			pst2.setInt(2, pesoTotal);
 			pst2.setString(3, form);
@@ -152,6 +372,7 @@ public class FormulasMoleculares {
 
 			if (insertados == 3) {
 				logger.info("La transacion ha ido bien.");
+				System.out.println("HAGO COMMIT");
 				con.commit();
 			} else {
 			}
@@ -163,25 +384,24 @@ public class FormulasMoleculares {
 			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
 
-		} catch (ChemistryException e) {
-			logger.error("La transacion hay que deshacerla.");
-			pool.undo(con);
-			logger.error(e.getLocalizedMessage());
-
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos");
 			pool.close(con);
 			pool.close(pst);
 			pool.close(pst2);
+			pool.close(pstExc);
+			pool.close(pstExc2);
 			pool.close(rs);
+			pool.close(rsExc);
+			pool.close(rsExc2);
+
 		}
 
 	}
 
 	// Nº 2
-	public static boolean borrarMolecula(String nombreMol) {
-		boolean retorno = false;
+	public static void borrarMolecula(String nombreMol) throws ChemistryException {
 		Connection con = null;
 		PreparedStatement pstId = null;
 		ResultSet rsId = null;
@@ -194,11 +414,10 @@ public class FormulasMoleculares {
 			pstId.setString(1, nombreMol);
 
 			rsId = pstId.executeQuery();
-			// Si el nombre d la molecula existe.
+			// Si el nombre de la molecula no existe.
 			if (rsId.next()) {
 				idMol = rsId.getInt(1);
 				borrarMolecula(idMol);
-
 				con.commit();
 			} else {
 				throw (new ChemistryException(ChemistryError.NO_EXISTE_MOLECULA));
@@ -211,12 +430,6 @@ public class FormulasMoleculares {
 			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
 
-		} catch (ChemistryException e) {
-			// TODO Auto-generated catch block
-			logger.error("La transacion hay que deshacerla.");
-			pool.undo(con);
-			logger.error(e.getLocalizedMessage());
-
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos");
@@ -224,12 +437,10 @@ public class FormulasMoleculares {
 			pool.close(pstId);
 			pool.close(rsId);
 		}
-
-		return retorno;
 	}
 
 	// Nº 3
-	public static void actualizarMolecula(String nombreMol, String simbolo, int nro) {
+	public static void actualizarMolecula(String nombreMol, String simbolo, int nro) throws ChemistryException {
 		Connection con = null;
 
 		PreparedStatement pstId = null;
@@ -256,17 +467,13 @@ public class FormulasMoleculares {
 			pool.undo(con);
 			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
-		} catch (ChemistryException e) {
-			logger.error("La transacion hay que deshacerla.");
-			pool.undo(con);
-			logger.error(e.getLocalizedMessage());
+
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos");
 			pool.close(con);
 			pool.close(pstId);
 			pool.close(rsId);
-
 		}
 	}
 
@@ -277,33 +484,26 @@ public class FormulasMoleculares {
 		PreparedStatement pstComp = null;
 		PreparedStatement pstMol = null;
 
-		int nroComp = 0;
-		int nroMol = 0;
-
 		try {
 			con = pool.getConnection();
 
-			pstComp = con.prepareStatement("DELETE FROM COMPOSICION WHERE IdMolecula=?");
+			pstComp = con.prepareStatement("DELETE FROM COMPOSICION WHERE idmolecula=?");
 			pstComp.setInt(1, id);
-			nroComp = pstComp.executeUpdate();
+			int nroComp = pstComp.executeUpdate();
 
-			pstMol = con.prepareStatement("DELETE FROM MOLECULAS WHERE id=?");
+			System.out.println("ID: " + id);
+			pstMol = con.prepareStatement("delete from moleculas where id=?");
 			pstMol.setInt(1, id);
-			nroMol = pstMol.executeUpdate();
+			int nroM = pstMol.executeUpdate();
+			// int nroMol = pstMol.executeUpdate();
+			System.out.println("Mol: " + nroM);
 
-			if (nroMol == 1 && nroComp == 2) {
-				logger.info("La transacion ha ido bien.");
+			if (nroM != 0 && nroComp != 0) {
+				// logger.info("La transacion ha ido bien.");
 				con.commit();
-
 			} else {
 				throw (new ChemistryException(ChemistryError.NO_EXISTE_MOLECULA));
 			}
-
-		} catch (ChemistryException e) {
-			// Falta algo
-			logger.error("La transacion hay que deshacerla.");
-			logger.error(e.getLocalizedMessage());
-			pool.undo(con);
 
 		} catch (SQLException e) {
 			logger.error("La transacion hay que deshacerla.");
@@ -313,7 +513,7 @@ public class FormulasMoleculares {
 
 		} finally {
 			// Rellenar por el alumno
-			logger.debug("Cerrando recursos");
+			// logger.debug("Cerrando recursos");
 			pool.close(con);
 			pool.close(pstComp);
 			pool.close(pstMol);
@@ -321,7 +521,7 @@ public class FormulasMoleculares {
 	}
 
 	// Nº 5
-	public static void actualizarMolecula(int id, String simbolo, int nro) {
+	public static void actualizarMolecula(int id, String simbolo, int nro) throws ChemistryException {
 
 		Connection con = null;
 
@@ -426,11 +626,6 @@ public class FormulasMoleculares {
 			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
 
-		} catch (ChemistryException e) {
-			// TODO Auto-generated catch block
-			logger.error("Deshaciendo transaccion...");
-			pool.undo(con);
-			logger.error(e.getLocalizedMessage());
 		} finally {
 			// Rellenar por el alumno
 			logger.debug("Cerrando recursos...");
@@ -453,6 +648,8 @@ public class FormulasMoleculares {
 		logger = LoggerFactory.getLogger(FormulasMoleculares.class);
 		// Metodos de logger que nos ha dicho.
 		logger.info("Comienzo Ejecución");
+		
+		ExecuteScript.run(".\\sql\\crear_tablas.sql");
 	}
 
 }

@@ -32,14 +32,14 @@ CREATE SEQUENCE seq_molId;
 
 insert into Elementos(simbolo, nombre, pesoAtomico) values ('H','Hidrogeno', 1);
 insert into Elementos(simbolo, nombre, pesoAtomico) values('O','Oxigeno', 18);
-insert into Elementos(simbolo, nombre, pesoAtomico) values('Y','Yodo', 10);
 
-insert into Moleculas(id, nombre, pesoMolecular, formula) values(962, 'Agua', 20, 'H2O');
+
+/*
 insert into Moleculas(id, nombre, pesoMolecular, formula) values(963, 'Yodo2', 20, 'Y2');
 
 insert into Composicion(simbolo, idMolecula, nroAtomos) values('H', 962, 2);
 insert into Composicion(simbolo, idMolecula, nroAtomos) values('O', 962, 1);
-insert into Composicion(simbolo, idMolecula, nroAtomos) values('Y', 963, 2);
+*/
 
 
 /*DELETE FROM COMPOSICION WHERE idMolecula=962;
