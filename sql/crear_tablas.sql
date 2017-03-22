@@ -32,17 +32,15 @@ CREATE SEQUENCE seq_molId;
 
 insert into Elementos(simbolo, nombre, pesoAtomico) values ('H','Hidrogeno', 1);
 insert into Elementos(simbolo, nombre, pesoAtomico) values('O','Oxigeno', 18);
-
-
 /*
-insert into Moleculas(id, nombre, pesoMolecular, formula) values(963, 'Yodo2', 20, 'Y2');
+insert into Moleculas(id, nombre, pesoMolecular, formula) values(1, 'Agua', 20, 'H2O');
 
-insert into Composicion(simbolo, idMolecula, nroAtomos) values('H', 962, 2);
-insert into Composicion(simbolo, idMolecula, nroAtomos) values('O', 962, 1);
+insert into Composicion(simbolo, idMolecula, nroAtomos) values('H', 1, 2);
+insert into Composicion(simbolo, idMolecula, nroAtomos) values('O', 1, 1);
 */
 
-
-/*DELETE FROM COMPOSICION WHERE idMolecula=962;
+/*DELETE FROM COMPOSICION WHERE idMolecula=1;
+DELETE FROM Moleculas WHERE id=1;
 delete from Moleculas where nombre='Agua';*/
 
 --SELECT elementos.simbolo, elementos.nombre, elementos.pesoatomico, composicion.nroatomos FROM Elementos inner join Composicion ON Elementos.simbolo = composicion.simbolo
