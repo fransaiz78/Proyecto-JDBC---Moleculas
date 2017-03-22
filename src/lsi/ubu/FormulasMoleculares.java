@@ -223,8 +223,7 @@ public class FormulasMoleculares {
 		}
 	}
 
-	
-	//Nº 4
+	// Nº 4
 	public static void borrarMolecula(int id) throws ChemistryException {
 		Connection con = null;
 
@@ -265,8 +264,6 @@ public class FormulasMoleculares {
 			pool.close(pstMol);
 		}
 	}
-	
-	
 
 	// Nº 5
 	public static void actualizarMolecula(int id, String simbolo, int nro) throws ChemistryException {
@@ -390,8 +387,7 @@ public class FormulasMoleculares {
 	}
 
 	public static void bateriaPruebas() {
-		
-		
+
 		System.out.println("---------------------------------------------------------------");
 		System.out.println("        - Bateria de pruebas para el caso de INSERTAR -        ");
 		System.out.println("---------------------------------------------------------------\n");
@@ -413,10 +409,10 @@ public class FormulasMoleculares {
 			// System.err.println(e.getMessage());
 			// logger.error(e.getLocalizedMessage());
 		}
-		
+
 		try {
 			String[] simbolos = { "H", "O" };
-			int[] nros = {2, 2};
+			int[] nros = { 2, 2 };
 			insertarMolecula("AguaOxigenada", simbolos, nros);
 			System.out.println("Insertar molecula AguaOxigenada se ha realizado con éxito.");
 
@@ -500,8 +496,12 @@ public class FormulasMoleculares {
 		// H2O.
 
 		System.out.println("\n-----------------------------------------------------------------");
-		System.out.println(" - Bateria de pruebas para el caso de ACTUALIZAR - ");
+		System.out.println("        - Bateria de pruebas para el caso de ACTUALIZAR -          ");
 		System.out.println("-----------------------------------------------------------------\n");
+
+		System.out.println("Cargando de nuevo el Script...");
+		ExecuteScript.run(".\\sql\\crear_tablas.sql");
+		System.out.println("Script cargado.\n");
 
 		try {
 			actualizarMolecula(1, "V", 4);
@@ -595,6 +595,10 @@ public class FormulasMoleculares {
 		System.out.println("        - Bateria de pruebas para el caso de BORRAR -        ");
 		System.out.println("-------------------------------------------------------------\n");
 
+		System.out.println("Cargando de nuevo el Script...");
+		ExecuteScript.run(".\\sql\\crear_tablas.sql");
+		System.out.println("Script cargado.\n");
+
 		try {
 			borrarMolecula(1);
 			System.out.println("Borrar molecula mediante Id se ha realizado con éxito.");
@@ -676,7 +680,10 @@ public class FormulasMoleculares {
 		// Metodos de logger que nos ha dicho.
 		logger.info("Comienzo Ejecución");
 
+		System.out.println("Cargando de nuevo el Script...");
 		ExecuteScript.run(".\\sql\\crear_tablas.sql");
+		System.out.println("Script cargado.\n");
+
 	}
 
 }
