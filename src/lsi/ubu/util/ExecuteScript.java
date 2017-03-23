@@ -40,7 +40,7 @@ public class ExecuteScript {
 			String line;
 			// No te olvides de hacer que el script acabe con "exit;"
 			Process p = Runtime.getRuntime().exec("sqlplus hr/hr @" + file_name);
-
+			l.info("Salidas a pantalla de la ejecucion del proceso");
 			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			while ((line = input.readLine()) != null) {
 				l.debug(line);

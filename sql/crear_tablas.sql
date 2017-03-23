@@ -29,7 +29,6 @@ CREATE TABLE Composicion (
 
 CREATE SEQUENCE seq_molId; 
 
-
 insert into Elementos(simbolo, nombre, pesoAtomico) values ('H','Hidrogeno', 1);
 insert into Elementos(simbolo, nombre, pesoAtomico) values('O','Oxigeno', 18);
 
@@ -38,22 +37,5 @@ insert into Moleculas(id, nombre, pesoMolecular, formula) values(seq_molId.nextv
 insert into Composicion(simbolo, idMolecula, nroAtomos) values('H', seq_molId.currval, 2);
 insert into Composicion(simbolo, idMolecula, nroAtomos) values('O', seq_molId.currval, 1);
 
-
-/*DELETE FROM COMPOSICION WHERE idMolecula=1;
-DELETE FROM Moleculas WHERE id=1;
-delete from Moleculas where nombre='Agua';*/
-
---SELECT elementos.simbolo, elementos.nombre, elementos.pesoatomico, composicion.nroatomos FROM Elementos inner join Composicion ON Elementos.simbolo = composicion.simbolo
-
---update Composicion set nroatomos=5 where idmolecula=962 and simbolo='H';
-
-/*
-select * from Elementos;
-select * from Moleculas;
-select * from Composicion;
-
-select seq_molId.nextval from Composicion;
-
-*/
-
+commit;
 exit;
