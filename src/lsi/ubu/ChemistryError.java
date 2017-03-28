@@ -17,7 +17,7 @@ public enum ChemistryError {
 	MOLECULA_YA_EXISTENTE("Existe una molécula con la misma fórmula"),	
 	SQL_ERROR("Error SQL no determinado "),
 	
-	//Creada por los alumnos
+	//Creada por los alumnos para un mejor funcionamiento.
 	FORMULA_YA_EXISTENTE("Ya existe una molécula con esa fórmula");
 	/** Texto. */
 	private String text;
