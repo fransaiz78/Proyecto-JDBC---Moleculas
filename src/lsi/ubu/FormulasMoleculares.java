@@ -337,11 +337,11 @@ public class FormulasMoleculares {
 		PreparedStatement pstActuMol = null;
 		PreparedStatement pstMol = null;
 		PreparedStatement pstPrue = null;
-		PreparedStatement pstPrue8 = null;
+		PreparedStatement pstPrueException = null;
 
 		ResultSet rsJoin = null;
 		ResultSet rsPrue = null;
-		ResultSet rsPrue8 = null;
+		ResultSet rsPrueExcepcion = null;
 
 		int pesoAtomico = 0;
 		int pesoMolecularTotal = 0;
@@ -353,18 +353,18 @@ public class FormulasMoleculares {
 		try {
 			con = pool.getConnection();
 
-			pstPrue8 = con
+			pstPrueException = con
 					.prepareStatement("SELECT * FROM Composicion WHERE simbolo=? and idMolecula=? and nroAtomos=?");
-			pstPrue8.setString(1, simbolo);
-			pstPrue8.setInt(2, id);
-			pstPrue8.setInt(3, nro);
+			pstPrueException.setString(1, simbolo);
+			pstPrueException.setInt(2, id);
+			pstPrueException.setInt(3, nro);
 
-			rsPrue8 = pstPrue8.executeQuery();
+			rsPrueExcepcion = pstPrueException.executeQuery();
 
 			// Comprobacion de que los parametros pasados existen ya en la
 			// tabla.
 
-			if (rsPrue8.next()) {
+			if (rsPrueExcepcion.next()) {
 				pool.undo(con);
 				throw (new ChemistryException(ChemistryError.FORMULA_YA_EXISTENTE));
 			} else {
@@ -388,8 +388,7 @@ public class FormulasMoleculares {
 				}
 
 				// Hacemos un join entre Elementos y Composicion para tener en
-				// la
-				// misma tabla todos los campos necesarios para las formulas.
+				// la misma tabla todos los campos necesarios para las formulas.
 
 				pstMol = con.prepareStatement(
 						"SELECT elementos.simbolo, elementos.nombre, elementos.pesoatomico, composicion.nroatomos "
@@ -399,14 +398,15 @@ public class FormulasMoleculares {
 				rsJoin = pstMol.executeQuery();
 
 				while (rsJoin.next()) {
-					// Obtenemos el peso atomico y el numero de atomos del
-					// simbolo.
+					// Obtenemos el peso atomico y el numero de atomos 
 					simb = rsJoin.getString(1);
 					pesoAtomico = rsJoin.getInt(3);
 					numAtomos = rsJoin.getInt(4);
 					numAtomosSt = rsJoin.getString(4);
+					
 					// Calculo el peso molecular.
 					pesoMolecularTotal += (pesoAtomico * numAtomos);
+					
 					// Concatenamos la formula.
 					formula = formula.concat(simb);
 					if (numAtomos > 1) {
@@ -443,10 +443,10 @@ public class FormulasMoleculares {
 			pool.close(pstActuComp);
 			pool.close(pstActuMol);
 			pool.close(pstPrue);
-			pool.close(pstPrue8);
+			pool.close(pstPrueException);
 			pool.close(rsJoin);
 			pool.close(rsPrue);
-			pool.close(rsPrue8);
+			pool.close(rsPrueExcepcion);
 		}
 	}
 
@@ -454,8 +454,8 @@ public class FormulasMoleculares {
 	 * Metodo en el que se realiza el tratamiento de las excepciones. Se recogen
 	 * aqui y comprobamos si el error es el que corresponde.
 	 * 
-	 * Realizaremos las comprobaciones en el siguiente orde:
-	 * Insertar // Actualizar // Borrar
+	 * Realizaremos las comprobaciones en el siguiente orde: Insertar //
+	 * Actualizar // Borrar
 	 */
 	public static void bateriaPruebas() {
 
@@ -507,7 +507,7 @@ public class FormulasMoleculares {
 				System.out.println("Insertar molecula con arrays de diferente tam. MAL. ");
 			}
 		}
-		
+
 		try {
 			String[] simbolos = { "C", "H" };
 			int[] nros = { 1, 4 };
@@ -705,22 +705,27 @@ public class FormulasMoleculares {
 	}
 
 	/**
-	 * Metodo estatico llamado inicializaciones. Aqui se recoge la instancia del pool de conexiones
-	 * Obtenemos el logger y lanzamos la ejecucion de nuestro script sql.
+	 * Metodo estatico llamado inicializaciones. Aqui se recoge la instancia del
+	 * pool de conexiones Obtenemos el logger y lanzamos la ejecucion de nuestro
+	 * script sql.
 	 * 
-	 * @throws NamingException Excepcion
-	 * @throws SQLException Excepcion
-	 * @throws IOException Excepcion
+	 * @throws NamingException
+	 *             Excepcion
+	 * @throws SQLException
+	 *             Excepcion
+	 * @throws IOException
+	 *             Excepcion
 	 */
 	public static void inicializaciones() throws NamingException, SQLException, IOException {
 		// Obtenemos una instancia del Pool
 		pool = PoolDeConexiones.getInstance();
-		
+
 		// Obtenemos el Logger
 		logger = LoggerFactory.getLogger(FormulasMoleculares.class);
-		
+
 		logger.info("Comienzo Ejecución");
 
+		//Cargamos el script.
 		System.out.println("Cargando de nuevo el Script...");
 		ExecuteScript.run("./sql/crear_tablas.sql");
 	}

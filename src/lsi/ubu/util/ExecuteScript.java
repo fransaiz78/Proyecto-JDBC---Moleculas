@@ -25,7 +25,6 @@ public class ExecuteScript {
 	 */
 	public static void main(String[] args) {
 		run(args[0]);
-//		run("sql\\crear_tablas.sql");
 	}
 
 	/**
@@ -36,9 +35,7 @@ public class ExecuteScript {
 	 */
 	public static void run(String file_name) {
 		try {
-//			System.out.println("file_name: " + file_name);
 			String line;
-			// No te olvides de hacer que el script acabe con "exit;"
 			Process p = Runtime.getRuntime().exec("sqlplus hr/hr @" + file_name);
 			l.info("Salidas a pantalla de la ejecucion del proceso");
 			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));

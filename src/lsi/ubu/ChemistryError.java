@@ -19,6 +19,7 @@ public enum ChemistryError {
 	
 	//Creada por los alumnos para un mejor funcionamiento.
 	FORMULA_YA_EXISTENTE("Ya existe una molécula con esa fórmula");
+	
 	/** Texto. */
 	private String text;
 	
